@@ -100,7 +100,7 @@ def main(_):
     f = open(file_path)
 
     cnt = 0
-    eof = False;
+    eof = False
     while not eof:
         # batch_xs, batch_ys = mnist.train.next_batch(100)
         batch_xs, batch_ys , eof = get_batch(f, 1000 , words)
@@ -118,7 +118,12 @@ def main(_):
         vv.append(get_one_hot_rep(w, words))
 
     res = sess.run(tf.nn.softmax(y), feed_dict={v: vv})
-    print(res, file=res.txt)
+    f = open("data/res.csv", "w")
+    for row in res:
+        for num in row:
+            f.write(str(num)+",")
+        f.write("\n")
+    f.close()
 
 if __name__ == '__main__':
     tf.app.run(main=main)
