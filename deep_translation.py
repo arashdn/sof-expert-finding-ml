@@ -36,18 +36,20 @@ def get_distinct_words(vocab_size=65536):
 
 
 def get_one_hot_rep(word, vocab):
-    res = numpy.zeros(shape=(len(vocab)), dtype="int32")
-    res[vocab[word]] = 1
+    res = numpy.zeros(shape=(len(vocab)))
+    res[vocab[word]] = 1.0
     return res
 
 
-def get_batch(file, batch_size):
+def get_batch(file, batch_size, words):
+    res_v = []
+    res_y = []
     for i in range(batch_size):
-        print(str(i)+". ")
+        # print(str(i)+". ")
         line = file.readline()
         if line == "":
             print("Done!")
-            break
+            return res_v, res_y, True
         line = line.split(",")
         word = line[1]
         tag = line[2].replace("\n", "").replace("\r", "").split("\t")
@@ -57,28 +59,19 @@ def get_batch(file, batch_size):
             if tg in tags:
                 tag_array[tags.index(tg)] = tag_prob
         word_array = get_one_hot_rep(word, words)
+        res_v.append(word_array)
+        res_y.append(tag_array)
+    return res_v, res_y, False
 
 
-
-words = get_distinct_words()
-print(get_one_hot_rep('you', words))
-
-f = open(file_path)
-
-get_batch(f, 1000000)
-
-f.close()
-
-exit()
 
 
 
 
 def main(_):
-    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
-
-    vocab_size = 1000
+    words = get_distinct_words()
     # Create the model
+    vocab_size = len(words)
     v = tf.placeholder(tf.float32, [None, vocab_size])
     wp = tf.Variable(tf.zeros([vocab_size, 300]))
     wc = tf.Variable(tf.zeros([300, 100]))
@@ -102,21 +95,30 @@ def main(_):
 
     sess = tf.InteractiveSession()
     # Train
-    tf.global_variables_initializer().run()
-    for _ in range(1000):
-        batch_xs, batch_ys = mnist.train.next_batch(100)
+    tf.initialize_all_variables().run()
+
+    f = open(file_path)
+
+    cnt = 0
+    eof = False;
+    while not eof:
+        # batch_xs, batch_ys = mnist.train.next_batch(100)
+        batch_xs, batch_ys , eof = get_batch(f, 1000 , words)
         sess.run(train_step, feed_dict={v: batch_xs, y_: batch_ys})
+        cnt += 1
+        print("Batch: "+str(cnt))
+    f.close()
 
     # Test trained model
-    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print(sess.run(accuracy, feed_dict={x: mnist.test.images,
-                                        y_: mnist.test.labels}))
+    # correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+    vv = []
+    for w in words:
+        vv.append(get_one_hot_rep(w, words))
+
+    res = sess.run(tf.nn.softmax(y), feed_dict={v: vv})
+    print(res, file=res.txt)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='/tmp/tensorflow/mnist/input_data',
-                        help='Directory for storing input data')
-    FLAGS, unparsed = parser.parse_known_args()
-    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    tf.app.run(main=main)
