@@ -52,6 +52,8 @@ def get_batch(file, batch_size, words):
             return res_v, res_y, True
         line = line.split(",")
         word = line[1]
+        if word not in words:
+            continue
         tag = line[2].replace("\n", "").replace("\r", "").split("\t")
         tag_prob = 1 / len(tag)
         tag_array = numpy.zeros(shape=len(tags))
@@ -103,7 +105,7 @@ def main(_):
     eof = False
     while not eof:
         # batch_xs, batch_ys = mnist.train.next_batch(100)
-        batch_xs, batch_ys , eof = get_batch(f, 1000 , words)
+        batch_xs, batch_ys , eof = get_batch(f, 10000 , words)
         sess.run(train_step, feed_dict={v: batch_xs, y_: batch_ys})
         cnt += 1
         print("Batch: "+str(cnt))
