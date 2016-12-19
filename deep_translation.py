@@ -106,6 +106,7 @@ def main(_):
     while not eof:
         # batch_xs, batch_ys = mnist.train.next_batch(100)
         batch_xs, batch_ys , eof = get_batch(f, 10000 , words)
+        n = numpy.array(batch_xs)
         sess.run(train_step, feed_dict={v: batch_xs, y_: batch_ys})
         cnt += 1
         print("Batch: "+str(cnt))
@@ -115,17 +116,40 @@ def main(_):
     # correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    vv = []
-    for w in words:
-        vv.append(get_one_hot_rep(w, words))
+    # vv = []
+    # for w in words:
+    #     vv.append(get_one_hot_rep(w, words))
+    #
+    # res = sess.run(tf.nn.softmax(y), feed_dict={v: vv})
+    # f = open("data/res.csv", "w")
+    # for row in res:
+    #     for num in row:
+    #         f.write(str(num)+",")
+    #     f.write("\n")
+    # f.close()
 
-    res = sess.run(tf.nn.softmax(y), feed_dict={v: vv})
     f = open("data/res.csv", "w")
+    i = 0
+    xx = []
+    for w in words:
+        print(i)
+        i += 1
+        if i % 1000 == 0:
+            res = sess.run(tf.nn.softmax(y), feed_dict={v: xx})
+            for row in res:
+                for num in row:
+                    f.write(str(num)+",")
+                f.write("\n")
+            xx = [get_one_hot_rep(w, words)]
+        else:
+            xx.append(get_one_hot_rep(w, words))
+    res = sess.run(tf.nn.softmax(y), feed_dict={v: xx})
     for row in res:
         for num in row:
-            f.write(str(num)+",")
+            f.write(str(num) + ",")
         f.write("\n")
     f.close()
+    print("Done")
 
 if __name__ == '__main__':
     tf.app.run(main=main)
