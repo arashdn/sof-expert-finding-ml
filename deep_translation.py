@@ -66,14 +66,36 @@ def get_batch(file, batch_size, words):
     return res_v, res_y, False
 
 
-
-
+def get_topic_model():
+    res = {}
+    f = open("data/vectors.txt")
+    lines = f.readlines()
+    for line in lines:
+        w = line.split("\t")
+        res[w[0]] = w[1].split(",")
+    f.close()
+    return res
 
 
 def main(_):
     words = get_distinct_words()
     # Create the model
     vocab_size = len(words)
+
+    # print("Topic model:")
+    # print(get_topic_model())
+
+    ff = open("data/words_no_topic.txt", "w")
+    ff2 = open("data/words_with_topic.txt", "w")
+
+    topic_models = get_topic_model()
+    for key in topic_models:
+        if key not in words.keys():
+            print(key, file=ff)
+        else:
+            print(key, file=ff2)
+    exit()
+
     v = tf.placeholder(tf.float32, [None, vocab_size])
     wp = tf.Variable(tf.zeros([vocab_size, 300]))
     wc = tf.Variable(tf.zeros([300, 100]))
