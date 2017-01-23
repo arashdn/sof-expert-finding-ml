@@ -21,6 +21,7 @@ Thumbs.db
 res.txt
 .idea/
 data/
+save/
 nbproject/private/
 build/
 nbbuild/
@@ -32,3 +33,5 @@ build-impl.xml
 nbactions.xml
 nb-configuration.xml
 genfiles.properties
+
+*.dll
