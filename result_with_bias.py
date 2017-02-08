@@ -3,6 +3,8 @@ import numpy
 import time
 from pathlib import Path
 
+from numpy.core.multiarray import dtype
+
 wc_load = numpy.load("./save/wc_N25_bias.npy")
 b_load = numpy.loadtxt("./save/b_N25_bias.txt")
 
@@ -248,7 +250,7 @@ def main(_):
     v = tf.placeholder(tf.float32, [None, 100]) # a matrix, each row is one-hot representation of words
     batch_size = tf.placeholder(tf.float32)  # ?????
     wc = tf.constant(wc_load)
-    b = tf.constant(b_load)
+    b = tf.constant(b_load, dtype=tf.float32)
     y_logit = tf.add(tf.matmul(v, wc),b)
 
     # Define loss and optimizer
