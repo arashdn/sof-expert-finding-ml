@@ -113,9 +113,10 @@ def readbatchNumber(lastBatch_file):
 def load_wcLastBatch(batchnumber):
     wc = numpy.load(file='./save/wc_N'+str(batchnumber)+'.npy')
     return wc
-
-
-
+	
+def load_BiasLastBatch(batchnumber):
+   b = numpy.loadtxt('./save/b_N'+str(batchnumber)+'.txt')
+   return b
 def get_initial_weights_for_tags_matrix():
     weights = []
     lastBatch_file = Path(LAST_BATCH_path)
@@ -128,6 +129,21 @@ def get_initial_weights_for_tags_matrix():
             array = get_random_array_for_tag_init_weight()
             weights.append(array)
     return weights
+	
+def get_initial_weights_for_bias_matrix():
+    weights = numpy.zeros([100])
+    lastBatch_file = Path(LAST_BATCH_path)
+    if lastBatch_file.is_file():
+        batchnumber = readbatchNumber(lastBatch_file)
+        weight1 = load_BiasLastBatch(batchnumber)
+        for i in range(0,100):
+            weights[i] = weights[i] + weight1[i]
+		   
+    else:
+    # we sould append 100(tags len) array of length 100(topic len)
+        weights = numpy.zeros[100]
+    return weights	
+	
 
 
 def convert_topic_dict_to_matrix(wordIndex_vector):
@@ -230,6 +246,7 @@ def main(_):
     assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
 
     initial_w = get_initial_weights_for_tags_matrix()
+    initial_b = get_initial_weights_for_bias_matrix()
     vocab_size = len(word_wordIndex)
     wordIndex_vector_array = convert_topic_dict_to_matrix(wordIndex_vector)
 
@@ -251,7 +268,7 @@ def main(_):
     #wp = tf.Variable(wordIndex_vector_array)
     wc = tf.Variable(initial_w)
     #wc = tf.Variable(tf.ones([100,100]))
-    b = tf.Variable(tf.zeros([100]))
+    b = tf.Variable(initial_b)
     # y_logit = tf.exp(tf.add(tf.matmul(tf.matmul(v, wp), wc), b))
     #y_logit = (tf.add(tf.matmul(tf.matmul(v, wp), wc), b))
     y_logit = tf.add(tf.matmul(v, wc),b)
@@ -303,7 +320,8 @@ def main(_):
         if cnt % 5 == 0:
             # numpy.savetxt('./save/wp.txt', wp.eval())
             # numpy.savetxt('./save/wc.txt', wc.eval())
-            numpy.savetxt('./save/b.txt', b.eval())
+            #numpy.savetxt('./save/b.txt', b.eval())
+            numpy.savetxt('./save/b_N'+str(cnt)+'.txt', b.eval())
             #numpy.savetxt('./save/wp'+str(cnt)+'.npy', wp.eval())
             numpy.save('./save/wc_N'+str(cnt)+'.npy', wc.eval())
 

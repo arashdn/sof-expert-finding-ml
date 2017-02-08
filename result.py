@@ -3,6 +3,10 @@ import numpy
 import time
 from pathlib import Path
 
+wc_load = numpy.load("./save/wc_N45.npy")
+
+
+
 
 topic_vectors_path = "./data/vectors.txt"
 doc_len_path = "./data/doc_len.txt"
@@ -187,12 +191,13 @@ def get_file_len():
 def get_batch2(file, batch_size, words, wordIndex_vector):
     res_v = []
     res_y = []
+    res_words = []
     bs = numpy.zeros(shape=(1, 1))
     for i in range(batch_size):
         line = file.readline()
         if line == "":
             print("Done!")
-            return len(res_v) * 1.0, res_v, res_y, True
+            return res_words, len(res_v) * 1.0, res_v, res_y, True
         line = line.split('\t')
         word= line[0]
         weights = line[1]
@@ -211,15 +216,16 @@ def get_batch2(file, batch_size, words, wordIndex_vector):
 
         res_v.append(wordIndex_vector[words[word]])
         res_y.append(tag_weights_normal)
+        res_words.append(word)
         bs = len(res_v) * 1.0
-    return bs, res_v, res_y, False
+    return res_words, bs, res_v, res_y, False
 
 
 
 def main(_):
     print("Starting ...")
     initial_words = get_initial_words()
-    docs_len = load_doc_len_normalizer()
+    # docs_len = load_doc_len_normalizer()
     word_wordIndex,wordIndex_word = get_distinct_words(initial_words)
 
 
@@ -229,7 +235,7 @@ def main(_):
 
     assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
 
-    initial_w = get_initial_weights_for_tags_matrix()
+    # initial_w = get_initial_weights_for_tags_matrix()
     vocab_size = len(word_wordIndex)
     wordIndex_vector_array = convert_topic_dict_to_matrix(wordIndex_vector)
 
@@ -237,83 +243,47 @@ def main(_):
 
     print("Data Pre-processing Completed")
 
-    file_len = get_file_len()
-    print("Number of words in file: " +str(file_len))
-
-
-    batch_cnt = file_len//WORD_PER_BATCH
-    print("Total batch: "+str(batch_cnt))
 
     v = tf.placeholder(tf.float32, [None, 100]) # a matrix, each row is one-hot representation of words
-    #doc_len = tf.placeholder(tf.float32, [None, 1])
     batch_size = tf.placeholder(tf.float32)  # ?????
-    #wp = tf.constant(wordIndex_vector_array)
-    #wp = tf.Variable(wordIndex_vector_array)
-    wc = tf.Variable(initial_w)
-    #wc = tf.Variable(tf.ones([100,100]))
-    b = tf.Variable(tf.zeros([100]))
-    # y_logit = tf.exp(tf.add(tf.matmul(tf.matmul(v, wp), wc), b))
-    #y_logit = (tf.add(tf.matmul(tf.matmul(v, wp), wc), b))
-    y_logit = tf.add(tf.matmul(v, wc),b)
+    wc = tf.constant(wc_load)
+    y_logit = tf.matmul(v, wc)
 
     # Define loss and optimizer
     y_ = tf.placeholder(tf.float32, [None, 100])
 
-    param1 = tf.div(tf.constant(1.0) , batch_size)
-    param2 = tf.div(tf.constant(lambda_regularization) , tf.mul(tf.constant(2.0) , batch_size))
-
-    # cross_entropy = param1* tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_logit, y_)) + param2* (tf.nn.l2_loss(wp) + tf.nn.l2_loss(wc))
-    #cross_entropy = tf.add(tf.mul(param1, tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=y_logit, labels=y_))),tf.mul(param2, tf.nn.l2_loss(wc)))
-    cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_logit, labels=y_))
-#Batch and Run: 0__0  9.63231 wp = 46652.9 wc = -8.35346 sum_bias = 0.0
-    train_step = tf.train.GradientDescentOptimizer(learning_rate=0.5).minimize(cross_entropy)
-    #train_step = tf.train.AdadeltaOptimizer(learning_rate=0.1, epsilon=1e-6).minimize(cross_entropy)
+    # cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_logit, labels=y_))
+    # train_step = tf.train.GradientDescentOptimizer(learning_rate=0.5).minimize(cross_entropy)
 
     sess = tf.InteractiveSession()
     # Train
     tf.initialize_all_variables().run()
 
     f_TF = open(TF_file_path)
-
-    cnt = 0
     eof = False
-    count_iter = 1000
+
+    file_res = open("./save/final_res.txt","w")
+    print("word", file=file_res, end="\t")
+    for t in tags:
+        print(t,file=file_res, end="\t")
+    print("\n",file=file_res,end='')
 
     while not eof:
-        start_time = time.time()
-        bs, batch_xs, batch_ys, eof = get_batch2(f_TF, WORD_PER_BATCH, word_wordIndex, wordIndex_vector)
+        words, bs, batch_xs, batch_ys, eof = get_batch2(f_TF, WORD_PER_BATCH, word_wordIndex, wordIndex_vector)
         # n = numpy.array(batch_xs)
         if len(batch_xs) == 0:
             print("Zero batch size, skipped")
             continue
 
-        for ii in range(0, count_iter):
+        result = sess.run(tf.nn.softmax(y_logit), feed_dict={v: batch_xs})
+        for ii in range(0,WORD_PER_BATCH):
+            print(words[ii], end="\t", file=file_res)
+            for c in result[ii]:
+                print(c, file=file_res, end="\t")
+            print("\n",end='',file=file_res)
 
-
-            result = sess.run([train_step,cross_entropy,tf.reduce_sum(wc),tf.reduce_sum(b)], feed_dict={v: batch_xs, y_: batch_ys, batch_size: bs})
-
-            #avg_cost = sess.run(cross_entropy, feed_dict={v: batch_xs, y_: batch_ys, batch_size: bs})
-            #sum_wp = sess.run(tf.reduce_sum(wp))
-            #sum_wc = sess.run(wc[0,0])
-            #sum_bias = sess.run(tf.reduce_sum(b))
-
-            print("Batch and Run: " + str(cnt) + "__" + str(ii) + "  " + str(result[1]) + " wc = " + str(result[2]) +" b = " + str(result[3]))
-        cnt += 1
-        print("Batch: " + str(cnt) + "/" + str(batch_cnt))
-        if cnt % 5 == 0:
-            # numpy.savetxt('./save/wp.txt', wp.eval())
-            # numpy.savetxt('./save/wc.txt', wc.eval())
-            numpy.savetxt('./save/b.txt', b.eval())
-            #numpy.savetxt('./save/wp'+str(cnt)+'.npy', wp.eval())
-            numpy.save('./save/wc_N'+str(cnt)+'.npy', wc.eval())
-
-            #numpy.save('./save/b'+str(cnt)+'.npy', b.eval())
-            ff = open("./save/last_batch.txt", mode='w')
-            print(str(cnt), file=ff)
-            ff.close()
-            print("files saved")
-        print("--- %s seconds ---" % (time.time() - start_time))
     f_TF.close()
+    file_res.close()
 
 if __name__ == '__main__':
     tf.app.run(main=main)
