@@ -21,7 +21,9 @@ Thumbs.db
 res.txt
 .idea/
 data/
+data_*
 save/
+save_*
 nbproject/private/
 build/
 nbbuild/

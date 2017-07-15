@@ -14,8 +14,11 @@ LAST_BATCH_path = "./save/last_batch.txt"
 
 
 
+##java
+# tags = ["algorithm", "android", "annotations", "ant", "apache", "applet", "arraylist", "arrays", "awt", "c#", "c++", "class", "collections", "concurrency", "database", "date", "design-patterns", "eclipse", "encryption", "exception", "file-io", "file", "generics", "google-app-engine", "gwt", "hadoop", "hashmap", "hibernate", "html", "http", "image", "inheritance", "intellij-idea", "io", "jar", "java-ee", "java", "javafx", "javascript", "jaxb", "jboss", "jdbc", "jersey", "jframe", "jni", "jpa", "jpanel", "jquery", "jsf", "json", "jsp", "jtable", "junit", "jvm", "libgdx", "linux", "list", "log4j", "logging", "loops", "maven", "methods", "multithreading", "mysql", "netbeans", "nullpointerexception", "object", "oop", "oracle", "osx", "parsing", "performance", "php", "python", "reflection", "regex", "rest", "scala", "security", "selenium", "serialization", "servlets", "soap", "sockets", "sorting", "spring-mvc", "spring-security", "spring", "sql", "sqlite", "string", "struts2", "swing", "swt", "tomcat", "unit-testing", "user-interface", "web-services", "windows", "xml"]
+##php
+tags = [".htaccess","ajax","android","apache","api","arrays","authentication","caching","cakephp","class","codeigniter","cookies","cron","css","csv","curl","database","date","datetime","doctrine","doctrine2","dom","drupal","email","encryption","facebook","facebook-graph-api","file","file-upload","foreach","forms","function","gd","get","html","html5","http","if-statement","image","include","java","javascript","joomla","jquery","json","laravel","laravel-4","linux","login","loops","magento","mod-rewrite","mongodb","multidimensional-array","mysql","mysqli","object","oop","pagination","parsing","paypal","pdf","pdo","performance","phpmyadmin","phpunit","post","preg-match","preg-replace","python","redirect","regex","rest","search","security","select","session","simplexml","smarty","soap","sorting","sql","sql-server","string","symfony2","table","twitter","upload","url","utf-8","validation","variables","web-services","wordpress","wordpress-plugin","xampp","xml","yii","zend-framework","zend-framework"]
 
-tags = ["algorithm", "android", "annotations", "ant", "apache", "applet", "arraylist", "arrays", "awt", "c#", "c++", "class", "collections", "concurrency", "database", "date", "design-patterns", "eclipse", "encryption", "exception", "file-io", "file", "generics", "google-app-engine", "gwt", "hadoop", "hashmap", "hibernate", "html", "http", "image", "inheritance", "intellij-idea", "io", "jar", "java-ee", "java", "javafx", "javascript", "jaxb", "jboss", "jdbc", "jersey", "jframe", "jni", "jpa", "jpanel", "jquery", "jsf", "json", "jsp", "jtable", "junit", "jvm", "libgdx", "linux", "list", "log4j", "logging", "loops", "maven", "methods", "multithreading", "mysql", "netbeans", "nullpointerexception", "object", "oop", "oracle", "osx", "parsing", "performance", "php", "python", "reflection", "regex", "rest", "scala", "security", "selenium", "serialization", "servlets", "soap", "sockets", "sorting", "spring-mvc", "spring-security", "spring", "sql", "sqlite", "string", "struts2", "swing", "swt", "tomcat", "unit-testing", "user-interface", "web-services", "windows", "xml"]
 TAGS_LEN = len(tags)
 TOPIC_LEN = 100
 WORD_PER_BATCH = 1024
@@ -195,7 +198,7 @@ def get_batch2(file, batch_size, words, wordIndex_vector):
             return len(res_v) * 1.0, res_v, res_y, True
         line = line.split('\t')
         word= line[0]
-        weights = line[1]
+        weights = line[1].strip()
         if word not in words:
             file_error = open(error_file_path, mode='a')
             print("word: " + word + " ,not exist in file")
@@ -205,7 +208,10 @@ def get_batch2(file, batch_size, words, wordIndex_vector):
         tag_weights = []
         for i in range(0,len(tag_array)):
             tag_weights.append(float(tag_array[i]))
-        tag_weights_normal = [x / sum(tag_weights) for x in tag_weights]
+        summ = sum(tag_weights)
+        if summ == 0:
+            summ = 1
+        tag_weights_normal = [x / summ for x in tag_weights]
 
         #word_array = get_one_hot_rep(word, words)
 
@@ -227,7 +233,8 @@ def main(_):
 
     wordIndex_vector = get_topic_model(word_wordIndex)
 
-    assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
+    #only working for java dataset
+    # assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
 
     initial_w = get_initial_weights_for_tags_matrix()
     vocab_size = len(word_wordIndex)
