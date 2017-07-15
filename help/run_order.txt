@@ -1,11 +1,16 @@
 #J : java app
 #P : python app
-
+#R : R script
 
 use queries to create tables and export txt files (e.g. php)
 php_a_tag.txt
 php_Q_A.txt
 php_q_tag.txt
+
+
+
+--------- Word Embedding -----------
+
 
 P#: run golden_creator.py ti get golden set for a tag
 
@@ -40,4 +45,19 @@ P#: run doc_len_finder.py to get doc_len.txt
 
 P#: edit deep_transalteion_new.py or deep_transalteion_new_bias.py file and add tags set for skill area (from database table)
 P#: run deep_transalteion_new.py or deep_transalteion_new_bias.py to get results
+
+
+
+
+
+
+
+--------- Clustering -----------
+set main_tag in jaccard_distancer.py
+edit jaccard_distancer.py and set main_tag
+P#: run jaccard_distancer.py to get jaccard dist
+R#: run cluster.r to create clusters and put res_tag.csv in cluster/data folder
+edit tag_group.py and set tag
+P#: run tag_group.py to get cluster_tag_final.csv
+
 

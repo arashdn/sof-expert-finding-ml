@@ -58,6 +58,9 @@ create table java_tag as
 select count(*) as c,tag from tags where p_id in(select p_id from java_qa where PostTypeId = 1) group by tag order by c desc limit 101;
 -- Query OK, 101 rows affected (1 min 28.63 sec)
 delete from java_tag where tag = 'java';
+------
+create table java_tag_full as
+select count(*) as c,tag from tags where p_id in(select p_id from java_qa where PostTypeId = 1) group by tag order by c desc, tag DESC limit 100;
 
 
 
