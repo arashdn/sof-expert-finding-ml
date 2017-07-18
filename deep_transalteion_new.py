@@ -17,7 +17,7 @@ LAST_BATCH_path = "./save/last_batch.txt"
 ##java
 # tags = ["algorithm", "android", "annotations", "ant", "apache", "applet", "arraylist", "arrays", "awt", "c#", "c++", "class", "collections", "concurrency", "database", "date", "design-patterns", "eclipse", "encryption", "exception", "file-io", "file", "generics", "google-app-engine", "gwt", "hadoop", "hashmap", "hibernate", "html", "http", "image", "inheritance", "intellij-idea", "io", "jar", "java-ee", "java", "javafx", "javascript", "jaxb", "jboss", "jdbc", "jersey", "jframe", "jni", "jpa", "jpanel", "jquery", "jsf", "json", "jsp", "jtable", "junit", "jvm", "libgdx", "linux", "list", "log4j", "logging", "loops", "maven", "methods", "multithreading", "mysql", "netbeans", "nullpointerexception", "object", "oop", "oracle", "osx", "parsing", "performance", "php", "python", "reflection", "regex", "rest", "scala", "security", "selenium", "serialization", "servlets", "soap", "sockets", "sorting", "spring-mvc", "spring-security", "spring", "sql", "sqlite", "string", "struts2", "swing", "swt", "tomcat", "unit-testing", "user-interface", "web-services", "windows", "xml"]
 ##php
-tags = [".htaccess","ajax","android","apache","api","arrays","authentication","caching","cakephp","class","codeigniter","cookies","cron","css","csv","curl","database","date","datetime","doctrine","doctrine2","dom","drupal","email","encryption","facebook","facebook-graph-api","file","file-upload","foreach","forms","function","gd","get","html","html5","http","if-statement","image","include","java","javascript","joomla","jquery","json","laravel","laravel-4","linux","login","loops","magento","mod-rewrite","mongodb","multidimensional-array","mysql","mysqli","object","oop","pagination","parsing","paypal","pdf","pdo","performance","phpmyadmin","phpunit","post","preg-match","preg-replace","python","redirect","regex","rest","search","security","select","session","simplexml","smarty","soap","sorting","sql","sql-server","string","symfony2","table","twitter","upload","url","utf-8","validation","variables","web-services","wordpress","wordpress-plugin","xampp","xml","yii","zend-framework","zend-framework"]
+tags = [".htaccess","ajax","android","apache","api","arrays","authentication","caching","cakephp","class","codeigniter","cookies","cron","css","csv","curl","database","date","datetime","doctrine","doctrine2","dom","drupal","email","encryption","facebook","facebook-graph-api","file","file-upload","foreach","forms","function","gd","get","html","html5","http","if-statement","image","include","java","javascript","joomla","jquery","json","laravel","laravel-4","linux","login","loops","magento","mod-rewrite","mongodb","multidimensional-array","mysql","mysqli","object","oop","pagination","parsing","paypal","pdf","pdo","performance","php","phpmyadmin","phpunit","post","preg-match","preg-replace","python","redirect","regex","rest","search","security","select","session","simplexml","soap","sorting","sql","sql-server","string","symfony2","table","twitter","upload","url","utf-8","validation","variables","web-services","wordpress","wordpress-plugin","xampp","xml","yii","zend-framework","zend-framework2"]
 
 TAGS_LEN = len(tags)
 TOPIC_LEN = 100
@@ -121,16 +121,18 @@ def load_wcLastBatch(batchnumber):
 
 def get_initial_weights_for_tags_matrix():
     weights = []
+    last_batch = -1
     lastBatch_file = Path(LAST_BATCH_path)
     if lastBatch_file.is_file():
         batchnumber = readbatchNumber(lastBatch_file)
+        last_batch = batchnumber
         weights = load_wcLastBatch(batchnumber)
     else:
     # we sould append 100(tags len) array of length 100(topic len)
         for i in range(TOPIC_LEN):
             array = get_random_array_for_tag_init_weight()
             weights.append(array)
-    return weights
+    return weights, last_batch
 
 
 def convert_topic_dict_to_matrix(wordIndex_vector):
@@ -236,7 +238,7 @@ def main(_):
     #only working for java dataset
     # assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
 
-    initial_w = get_initial_weights_for_tags_matrix()
+    initial_w,last_batch = get_initial_weights_for_tags_matrix()
     vocab_size = len(word_wordIndex)
     wordIndex_vector_array = convert_topic_dict_to_matrix(wordIndex_vector)
 
@@ -250,6 +252,7 @@ def main(_):
 
     batch_cnt = file_len//WORD_PER_BATCH
     print("Total batch: "+str(batch_cnt))
+    # print("Saved batch: "+str(last_batch))
 
     v = tf.placeholder(tf.float32, [None, 100]) # a matrix, each row is one-hot representation of words
     #doc_len = tf.placeholder(tf.float32, [None, 1])
@@ -293,6 +296,11 @@ def main(_):
         if len(batch_xs) == 0:
             print("Zero batch size, skipped")
             continue
+
+        # if cnt <= last_batch:
+        #     print("batch " + str(cnt) + " is done before")
+        #     cnt += 1
+        #     continue
 
         for ii in range(0, count_iter):
 

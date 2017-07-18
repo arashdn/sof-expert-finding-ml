@@ -5,8 +5,8 @@ from pathlib import Path
 
 from numpy.core.multiarray import dtype
 
-wc_load = numpy.load("./save/wc_N25_bias.npy")
-b_load = numpy.loadtxt("./save/b_N25_bias.txt")
+wc_load = numpy.load("./save/wc_N30_bias.npy")
+b_load = numpy.loadtxt("./save/b_N30_bias.txt")
 
 
 
@@ -22,7 +22,10 @@ LAST_BATCH_path = "./save/last_batch.txt"
 
 
 
-tags = ["algorithm", "android", "annotations", "ant", "apache", "applet", "arraylist", "arrays", "awt", "c#", "c++", "class", "collections", "concurrency", "database", "date", "design-patterns", "eclipse", "encryption", "exception", "file-io", "file", "generics", "google-app-engine", "gwt", "hadoop", "hashmap", "hibernate", "html", "http", "image", "inheritance", "intellij-idea", "io", "jar", "java-ee", "java", "javafx", "javascript", "jaxb", "jboss", "jdbc", "jersey", "jframe", "jni", "jpa", "jpanel", "jquery", "jsf", "json", "jsp", "jtable", "junit", "jvm", "libgdx", "linux", "list", "log4j", "logging", "loops", "maven", "methods", "multithreading", "mysql", "netbeans", "nullpointerexception", "object", "oop", "oracle", "osx", "parsing", "performance", "php", "python", "reflection", "regex", "rest", "scala", "security", "selenium", "serialization", "servlets", "soap", "sockets", "sorting", "spring-mvc", "spring-security", "spring", "sql", "sqlite", "string", "struts2", "swing", "swt", "tomcat", "unit-testing", "user-interface", "web-services", "windows", "xml"]
+##java
+# tags = ["algorithm", "android", "annotations", "ant", "apache", "applet", "arraylist", "arrays", "awt", "c#", "c++", "class", "collections", "concurrency", "database", "date", "design-patterns", "eclipse", "encryption", "exception", "file-io", "file", "generics", "google-app-engine", "gwt", "hadoop", "hashmap", "hibernate", "html", "http", "image", "inheritance", "intellij-idea", "io", "jar", "java-ee", "java", "javafx", "javascript", "jaxb", "jboss", "jdbc", "jersey", "jframe", "jni", "jpa", "jpanel", "jquery", "jsf", "json", "jsp", "jtable", "junit", "jvm", "libgdx", "linux", "list", "log4j", "logging", "loops", "maven", "methods", "multithreading", "mysql", "netbeans", "nullpointerexception", "object", "oop", "oracle", "osx", "parsing", "performance", "php", "python", "reflection", "regex", "rest", "scala", "security", "selenium", "serialization", "servlets", "soap", "sockets", "sorting", "spring-mvc", "spring-security", "spring", "sql", "sqlite", "string", "struts2", "swing", "swt", "tomcat", "unit-testing", "user-interface", "web-services", "windows", "xml"]
+##php
+tags = [".htaccess","ajax","android","apache","api","arrays","authentication","caching","cakephp","class","codeigniter","cookies","cron","css","csv","curl","database","date","datetime","doctrine","doctrine2","dom","drupal","email","encryption","facebook","facebook-graph-api","file","file-upload","foreach","forms","function","gd","get","html","html5","http","if-statement","image","include","java","javascript","joomla","jquery","json","laravel","laravel-4","linux","login","loops","magento","mod-rewrite","mongodb","multidimensional-array","mysql","mysqli","object","oop","pagination","parsing","paypal","pdf","pdo","performance","php","phpmyadmin","phpunit","post","preg-match","preg-replace","python","redirect","regex","rest","search","security","select","session","simplexml","soap","sorting","sql","sql-server","string","symfony2","table","twitter","upload","url","utf-8","validation","variables","web-services","wordpress","wordpress-plugin","xampp","xml","yii","zend-framework","zend-framework2"]
 TAGS_LEN = len(tags)
 TOPIC_LEN = 100
 WORD_PER_BATCH = 1024
@@ -213,7 +216,10 @@ def get_batch2(file, batch_size, words, wordIndex_vector):
         tag_weights = []
         for i in range(0,len(tag_array)):
             tag_weights.append(float(tag_array[i]))
-        tag_weights_normal = [x / sum(tag_weights) for x in tag_weights]
+        summ = sum(tag_weights)
+        if summ == 0:
+            summ = 1
+        tag_weights_normal = [x / summ for x in tag_weights]
 
         #word_array = get_one_hot_rep(word, words)
 
@@ -236,7 +242,8 @@ def main(_):
 
     wordIndex_vector = get_topic_model(word_wordIndex)
 
-    assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
+    # java only
+    # assert str(wordIndex_vector[word_wordIndex['file']][6]) == '0.1193'  # loaded from mallet file
 
     # initial_w = get_initial_weights_for_tags_matrix()
     vocab_size = len(word_wordIndex)
@@ -278,13 +285,14 @@ def main(_):
         if len(batch_xs) == 0:
             print("Zero batch size, skipped")
             continue
+        if not eof:
+            result = sess.run(tf.nn.softmax(y_logit), feed_dict={v: batch_xs})
+            for ii in range(0,WORD_PER_BATCH):
+                print(words[ii], end="\t", file=file_res)
+                for c in result[ii]:
+                    print(c, file=file_res, end="\t")
 
-        result = sess.run(tf.nn.softmax(y_logit), feed_dict={v: batch_xs})
-        for ii in range(0,WORD_PER_BATCH):
-            print(words[ii], end="\t", file=file_res)
-            for c in result[ii]:
-                print(c, file=file_res, end="\t")
-            print("\n",end='',file=file_res)
+                print("\n",end='',file=file_res)
 
     f_TF.close()
     file_res.close()
