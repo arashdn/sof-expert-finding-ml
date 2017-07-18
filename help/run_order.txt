@@ -12,7 +12,7 @@ php_q_tag.txt
 --------- Word Embedding -----------
 
 
-P#: run golden_creator.py ti get golden set for a tag
+P#: run golden_creator.py ti get golden set for a tag (7 and 0.4 for php params)
 
 
 #J: Index posts for a tag (use IndexTagPost button)
