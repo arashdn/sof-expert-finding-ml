@@ -57,7 +57,6 @@ Please cite the paper, If you used the codes in this repository.
  doi = {10.1145/3077136.3080719},
  acmid = {3080719},
  publisher = {ACM},
- address = {New York, NY, USA},
  keywords = {expertise retrieval, semantic matching, stackoverflow, statistical machine translation, talent acquisition},
 } 
 ```
