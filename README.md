@@ -5,7 +5,7 @@ This repository contains source codes developed for Machine Learning(Word embedd
 	Arash Dargahi Nobari, Sajad Sotudeh Gharebagh and Mahmood Neshati. “Skill Translation Models in Expert Finding”,
 	In proceedings of The 40th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’17), Aug 2016.
 
-You may check the [paper](http://arashdargahi.com/to_be_added) for more information.
+You may check the [paper](http://dl.acm.org/citation.cfm?id=3080719) ([PDF](http://facultymembers.sbu.ac.ir/neshati/wp-content/uploads/2015/03/Skill-Translation-Models-in-Expert-Finding.pdf)) for more information.
 
 Main repository for other codes can be accessed [here](https://github.com/arashdn/sof-expert-finding)
 
@@ -43,5 +43,21 @@ The `data` folder includes the following files and folders:
 Please cite the paper, If you used the codes in this repository.
 
 ```
-
+@inproceedings{DargahiNobari:2017:STM,
+ author = {Dargahi Nobari, Arash and Sotudeh Gharebagh, Sajad and Neshati, Mahmood},
+ title = {Skill Translation Models in Expert Finding},
+ booktitle = {Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval},
+ series = {SIGIR '17},
+ year = {2017},
+ isbn = {978-1-4503-5022-8},
+ location = {Shinjuku, Tokyo, Japan},
+ pages = {1057--1060},
+ numpages = {4},
+ url = {http://doi.acm.org.ezp3.semantak.com/10.1145/3077136.3080719},
+ doi = {10.1145/3077136.3080719},
+ acmid = {3080719},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {expertise retrieval, semantic matching, stackoverflow, statistical machine translation, talent acquisition},
+} 
 ```
